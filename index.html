@@ -3,119 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Azbry-MD Claw Machine</title>
-
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
-
-  <style>
-    body {
-      background: #0b1220;
-      color: white;
-      font-family: Arial;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-
-    h1 {
-      margin-top: 20px;
-      font-size: 22px;
-    }
-
-    #machine {
-      width: 90%;
-      max-width: 360px;
-      background: #d7eef7;
-      height: 420px;
-      margin: 20px auto;
-      border-radius: 20px;
-      position: relative;
-      overflow: hidden;
-      border: 8px solid #0e1a2e;
-      box-shadow: 0 0 20px #0008;
-    }
-
-    /* CLAMP ARM */
-    #claw {
-      width: 70px;
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      transition: 0.4s ease;
-      z-index: 10;
-    }
-
-    /* BOLA */
-    .ball {
-      position: absolute;
-      border-radius: 50%;
-      opacity: .95;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #000;
-      font-weight: bold;
-      font-size: 16px;
-      border: 3px solid #fff;
-    }
-
-    /* CONTROLS */
-    #controls {
-      margin-top: 20px;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .btn {
-      background: #ffcb5f;
-      padding: 12px 18px;
-      border-radius: 12px;
-      border: none;
-      font-size: 18px;
-      font-weight: bold;
-      color: black;
-    }
-
-    #capitBtn {
-      background: #64ff9c;
-    }
-
-    /* INFO */
-    #info-area {
-      margin-top: 10px;
-      font-size: 16px;
-    }
-  </style>
+  <title>Lucky Ball Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>Azbry-MD Claw Machine</h1>
-<p>by FebryWesker — mobile</p>
+  <div class="game-container">
 
-<div id="machine">
-  
-  <!-- CAPIT (SVG) -->
-  <img id="claw" src="https://i.ibb.co/wKT9Km7/claw.png">
+    <h1 class="title">Lucky Ball</h1>
 
-  <!-- BALLS container -->
-  <div id="balls"></div>
+    <div id="play-info">
+      <p>Sisa kesempatan: <span id="remaining">...</span></p>
+    </div>
 
-</div>
+    <div id="machine">
+      <!-- Bola akan muncul dari JS -->
+    </div>
 
-<div id="controls">
-  <button class="btn" id="leftBtn">◀</button>
-  <button class="btn" id="capitBtn">CAPIT</button>
-  <button class="btn" id="rightBtn">▶</button>
-</div>
+    <button id="play-btn">MAIN</button>
 
-<div id="info-area">
-  <p id="chanceText">Chances: —</p>
-  <p id="rewardText">Siap bermain</p>
-</div>
+    <div id="result" class="hidden">
+      <h2 id="result-text"></h2>
+      <p id="result-detail"></p>
+    </div>
 
-<script src="./game.js"></script>
+  </div>
+
+  <script src="game.js"></script>
 </body>
 </html>
