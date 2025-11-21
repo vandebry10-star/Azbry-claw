@@ -1,10 +1,16 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Azbry-MD Claw Machine by FebryWesker</title>
+
+  <!-- Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <script src="https://openfpcdn.io/fingerprintjs/v4"></script>
+
+  <!-- FingerprintJS -->
+  <script src="https://fingerprintjs.github.io/fingerprintjs/dist/fp.min.js"></script>
+
   <style>
     body {
       background: #111;
@@ -61,124 +67,28 @@
     }
   </style>
 </head>
-<body><h1>Azbry-MD Claw Machine by FebryWesker</h1><div id="game">
+<body>
+
+<h1>Azbry-MD Claw Machine by FebryWesker</h1>
+
+<div id="game">
   <div class="claw-container">
     <div id="claw-arm"></div>
+
     <svg id="claw" viewBox="0 0 100 100">
       <path d="M50 10 L30 50 L40 50 L50 30 L60 50 L70 50 Z" fill="silver" stroke="white" />
     </svg>
-  </div><button id="playBtn">🎮 Mainkan!</button>
+  </div>
+
+  <button id="playBtn">🎮 Mainkan!</button>
 
   <div id="result"></div>
-</div><footer>© 2025 FebryWesker — Azbry-MD Claw Machine</footer><script>
-// Supabase
-const supabaseUrl = "https://abhrkcpchrwyjcewfnds.supabase.co";
-const supabaseKey = "sb_publishable_Mz_eGCSHxj3DOOOXyyQwZg_aJmmiFuP";
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+</div>
 
-let deviceId = null;
-let playCount = 0;
+<footer>© 2025 FebryWesker — Azbry-MD Claw Machine</footer>
 
-// Fingerprint device
-FingerprintJS.load().then(fp => {
-  fp.get().then(result => {
-    deviceId = result.visitorId;
-    loadTodayPlays();
-  });
-});
+<!-- GAME LOGIC -->
+<script src="./game.js"></script>
 
-async function loadTodayPlays() {
-  const today = new Date().toISOString().slice(0, 10);
-
-  const { data, error } = await supabaseClient
-    .from("plays")
-    .select("*")
-    .eq("device_id", deviceId)
-    .eq("date", today)
-    .maybeSingle();
-
-  if (!data) {
-    await supabaseClient.from("plays").insert({
-      device_id: deviceId,
-      date: today,
-      plays: 0
-    });
-    playCount = 0;
-  } else {
-    playCount = data.plays;
-  }
-
-  updateUI();
-}
-
-function updateUI() {
-  document.getElementById("result").innerHTML = `Kesempatan hari ini: ${5 - playCount}`;
-}
-
-// Main Game
-async function playGame() {
-  if (playCount >= 5) {
-    document.getElementById("result").innerHTML = "❌ Kesempatan habis, coba lagi besok!";
-    return;
-  }
-
-  animateClaw();
-  playCount++;
-  updateUI();
-
-  const today = new Date().toISOString().slice(0, 10);
-  await supabaseClient
-    .from("plays")
-    .update({ plays: playCount })
-    .eq("device_id", deviceId)
-    .eq("date", today);
-
-  setTimeout(() => {
-    giveReward();
-  }, 1200);
-}
-
-document.getElementById("playBtn").onclick = playGame;
-
-function animateClaw() {
-  const arm = document.getElementById("claw-arm");
-  const claw = document.getElementById("claw");
-
-  arm.style.height = "220px";
-  claw.style.transform = "translateY(120px)";
-
-  setTimeout(() => {
-    arm.style.height = "120px";
-    claw.style.transform = "translateY(0)";
-  }, 600);
-}
-
-function giveReward() {
-  const chance = Math.random();
-
-  if (chance < 0.65) {
-    document.getElementById("result").innerHTML = "🎁 ZONK! Coba lagi!";
-    return;
-  }
-
-  const limit = Math.floor(Math.random() * 5) + 1;
-  const code = generateCode();
-
-  saveReward(limit, code);
-
-  document.getElementById("result").innerHTML = `🎉 Dapat ${limit} LIMIT!<br>Kode: <b>${code}</b>`;
-}
-
-function generateCode() {
-  return "AZ-" + Math.random().toString(36).substring(2, 10).toUpperCase();
-}
-
-async function saveReward(limit, code) {
-  await supabaseClient.from("codes").insert({
-    code: code,
-    limit: limit
-  });
-}
-
-</script></body>
+</body>
 </html>
