@@ -1,0 +1,44 @@
+body {
+  background: #111;
+  color: white;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+h1 { margin-top: 20px; }
+
+.machine {
+  width: 360px;
+  height: 480px;
+  margin: 20px auto;
+  background: #222;
+  border: 3px solid #555;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+#playBtn {
+  background: #ff4444;
+  border: none;
+  padding: 12px 25px;
+  color: white;
+  font-size: 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+#result {
+  margin-top: 15px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+footer {
+  margin-top: 30px;
+  font-size: 14px;
+  opacity: 0.5;
+}
