@@ -1,4 +1,4 @@
-// Supabase
+// ================== Supabase ==================
 const supabaseUrl = "https://abhrkcpchrwyjcewfnds.supabase.co";
 const supabaseKey = "sb_publishable_Mz_eGCSHxj3DOOOXyyQwZg_aJmmiFuP";
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
@@ -6,24 +6,20 @@ const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 let deviceId = "UNKNOWN";
 let playCount = 0;
 
-// INIT FingerprintJS (versi 3 stabil)
+// FingerprintJS
 async function initFingerprint() {
   try {
     const fp = await FingerprintJS.load();
     const result = await fp.get();
     deviceId = result.visitorId;
-  } catch(e) {
-    console.warn("Fingerprint gagal, fallback pakai random id");
+  } catch {
     deviceId = "RND-" + Math.random().toString(36).slice(2, 10);
   }
-
   loadTodayPlays();
 }
 
 initFingerprint();
 
-
-// ========== Supabase Load ==========
 async function loadTodayPlays() {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -53,8 +49,62 @@ function updateUI() {
     `Kesempatan hari ini: ${5 - playCount}`;
 }
 
+// ================== GAME CANVAS ==================
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-// ========== GAME ==========
+let clawX = 160;
+let clawY = 20;
+let clawWidth = 40;
+let clawHeight = 20;
+let isDropping = false;
+
+let ballX = Math.random() * 250 + 50;
+let ballY = 380;
+let ballCaught = false;
+
+// Draw everything
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // background
+  ctx.fillStyle = "#333";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // ball
+  ctx.fillStyle = "yellow";
+  ctx.beginPath();
+  ctx.arc(ballX, ballY, 20, 0, Math.PI * 2);
+  ctx.fill();
+
+  // claw arm
+  ctx.strokeStyle = "silver";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(clawX + clawWidth / 2, 0);
+  ctx.lineTo(clawX + clawWidth / 2, clawY);
+  ctx.stroke();
+
+  // claw
+  ctx.fillStyle = "silver";
+  ctx.fillRect(clawX, clawY, clawWidth, clawHeight);
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+// Move claw
+canvas.addEventListener("touchmove", (e) => {
+  let x = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+  clawX = Math.max(20, Math.min(x, 300));
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  let x = e.clientX - canvas.getBoundingClientRect().left;
+  clawX = Math.max(20, Math.min(x, 300));
+});
+
+// ================== PLAY ==================
 document.getElementById("playBtn").onclick = playGame;
 
 async function playGame() {
@@ -64,10 +114,10 @@ async function playGame() {
     return;
   }
 
-  animateClaw();
-
   playCount++;
   updateUI();
+
+  dropClaw();
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -76,35 +126,63 @@ async function playGame() {
     .update({ plays: playCount })
     .eq("device_id", deviceId)
     .eq("date", today);
-
-  setTimeout(giveReward, 1200);
 }
 
+function dropClaw() {
+  if (isDropping) return;
+  isDropping = true;
 
-// Animasi capit
-function animateClaw() {
-  const arm = document.getElementById("claw-arm");
-  const claw = document.getElementById("claw");
+  let dropInterval = setInterval(() => {
+    clawY += 5;
 
-  arm.style.height = "220px";
-  claw.style.transform = "translateY(120px)";
+    // check collision
+    if (!ballCaught && clawY >= ballY - 30 && Math.abs(clawX - ballX) < 40) {
+      ballCaught = true;
+    }
 
-  setTimeout(() => {
-    arm.style.height = "120px";
-    claw.style.transform = "translateY(0)";
-  }, 600);
+    if (clawY >= 350) {
+      clearInterval(dropInterval);
+      raiseClaw();
+    }
+  }, 15);
 }
 
+function raiseClaw() {
+  let upInterval = setInterval(() => {
+    clawY -= 5;
 
-// Reward
-function giveReward() {
-  const chance = Math.random();
+    if (ballCaught) ballY -= 5;
 
-  if (chance < 0.65) {
+    if (clawY <= 20) {
+      clearInterval(upInterval);
+      finishPlay();
+    }
+  }, 15);
+}
+
+function finishPlay() {
+  if (!ballCaught) {
     document.getElementById("result").innerHTML = "🎁 ZONK! Coba lagi!";
+    resetBall();
+    isDropping = false;
     return;
   }
 
+  ballCaught = false;
+  resetBall();
+
+  giveReward();
+
+  isDropping = false;
+}
+
+function resetBall() {
+  ballX = Math.random() * 250 + 50;
+  ballY = 380;
+}
+
+// =============== REWARD ==================
+function giveReward() {
   const limit = Math.floor(Math.random() * 5) + 1;
   const code = generateCode();
 
