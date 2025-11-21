@@ -3,20 +3,27 @@ const supabaseUrl = "https://abhrkcpchrwyjcewfnds.supabase.co";
 const supabaseKey = "sb_publishable_Mz_eGCSHxj3DOOOXyyQwZg_aJmmiFuP";
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-let deviceId = null;
+let deviceId = "UNKNOWN";
 let playCount = 0;
 
-// Load FingerprintJS
-const fpPromise = FingerprintJS.load();
-
-fpPromise
-  .then(fp => fp.get())
-  .then(result => {
+// INIT FingerprintJS (versi 3 stabil)
+async function initFingerprint() {
+  try {
+    const fp = await FingerprintJS.load();
+    const result = await fp.get();
     deviceId = result.visitorId;
-    loadTodayPlays();
-  });
+  } catch(e) {
+    console.warn("Fingerprint gagal, fallback pakai random id");
+    deviceId = "RND-" + Math.random().toString(36).slice(2, 10);
+  }
 
-// Load play count
+  loadTodayPlays();
+}
+
+initFingerprint();
+
+
+// ========== Supabase Load ==========
 async function loadTodayPlays() {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -46,7 +53,10 @@ function updateUI() {
     `Kesempatan hari ini: ${5 - playCount}`;
 }
 
-// Main Game
+
+// ========== GAME ==========
+document.getElementById("playBtn").onclick = playGame;
+
 async function playGame() {
   if (playCount >= 5) {
     document.getElementById("result").innerHTML =
@@ -55,6 +65,7 @@ async function playGame() {
   }
 
   animateClaw();
+
   playCount++;
   updateUI();
 
@@ -66,13 +77,9 @@ async function playGame() {
     .eq("device_id", deviceId)
     .eq("date", today);
 
-  setTimeout(() => {
-    giveReward();
-  }, 1200);
+  setTimeout(giveReward, 1200);
 }
 
-// Button listener
-document.getElementById("playBtn").onclick = playGame;
 
 // Animasi capit
 function animateClaw() {
@@ -88,13 +95,13 @@ function animateClaw() {
   }, 600);
 }
 
-// Reward system
+
+// Reward
 function giveReward() {
   const chance = Math.random();
 
   if (chance < 0.65) {
-    document.getElementById("result").innerHTML =
-      "🎁 ZONK! Coba lagi!";
+    document.getElementById("result").innerHTML = "🎁 ZONK! Coba lagi!";
     return;
   }
 
