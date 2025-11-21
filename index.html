@@ -1,33 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lucky Ball Game</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Azbry-MD Claw Machine — Mobile</title>
+
+  <!-- Supabase client -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <!-- FingerprintJS v3 stable -->
+  <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="top">
+    <h1>Azbry-MD Claw Machine</h1>
+    <div class="sub">by FebryWesker — mobile</div>
+  </header>
 
-  <div class="game-container">
+  <main class="wrap">
+    <section class="machine-card">
+      <div class="glass">
+        <canvas id="gameCanvas" width="360" height="520" aria-label="claw machine"></canvas>
 
-    <h1 class="title">Lucky Ball</h1>
+        <!-- overlay controls (mobile centered) -->
+        <div class="controls">
+          <button id="leftBtn" class="ctrl">◀</button>
+          <button id="dropBtn" class="ctrl big">CAPIT</button>
+          <button id="rightBtn" class="ctrl">▶</button>
+        </div>
+      </div>
 
-    <div id="play-info">
-      <p>Sisa kesempatan: <span id="remaining">...</span></p>
-    </div>
+      <div class="info-row">
+        <div id="chances">Chances: —</div>
+        <div id="status">Siap bermain</div>
+      </div>
 
-    <div id="machine">
-      <!-- Bola akan muncul dari JS -->
-    </div>
+      <div class="redeem">
+        <div id="resultText">-</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div id="codeBox" class="code">-</div>
+          <button id="copyBtn" class="copy">Copy</button>
+        </div>
+      </div>
+    </section>
+  </main>
 
-    <button id="play-btn">MAIN</button>
-
-    <div id="result" class="hidden">
-      <h2 id="result-text"></h2>
-      <p id="result-detail"></p>
-    </div>
-
-  </div>
+  <footer>© 2025 FebryWesker — Azbry-MD Claw Machine</footer>
 
   <script src="game.js"></script>
 </body>
