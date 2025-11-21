@@ -1,32 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Azbry-MD Claw Machine by FebryWesker</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Azbry-MD Claw Machine — Mobile</title>
 
-  <!-- Supabase -->
+  <!-- Supabase client -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
-
-  <!-- FingerprintJS -->
+  <!-- FingerprintJS v3 stable -->
   <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
 
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="top">
+    <h1>Azbry-MD Claw Machine</h1>
+    <div class="sub">by FebryWesker — mobile</div>
+  </header>
 
-<h1>Azbry-MD Claw Machine by FebryWesker</h1>
+  <main class="wrap">
+    <section class="machine-card">
+      <div class="glass">
+        <canvas id="gameCanvas" width="360" height="520" aria-label="claw machine"></canvas>
 
-<div class="machine">
-  <canvas id="gameCanvas" width="360" height="480"></canvas>
-</div>
+        <!-- overlay controls (mobile centered) -->
+        <div class="controls">
+          <button id="leftBtn" class="ctrl">◀</button>
+          <button id="dropBtn" class="ctrl big">CAPIT</button>
+          <button id="rightBtn" class="ctrl">▶</button>
+        </div>
+      </div>
 
-<button id="playBtn">🎮 Mainkan!</button>
+      <div class="info-row">
+        <div id="chances">Chances: —</div>
+        <div id="status">Siap bermain</div>
+      </div>
 
-<div id="result"></div>
+      <div class="redeem">
+        <div id="resultText">-</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div id="codeBox" class="code">-</div>
+          <button id="copyBtn" class="copy">Copy</button>
+        </div>
+      </div>
+    </section>
+  </main>
 
-<footer>© 2025 FebryWesker — Azbry-MD Claw Machine</footer>
+  <footer>© 2025 FebryWesker — Azbry-MD Claw Machine</footer>
 
-<script src="game.js"></script>
+  <script src="game-full.js"></script>
 </body>
 </html>
