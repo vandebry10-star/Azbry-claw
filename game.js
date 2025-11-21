@@ -1,217 +1,230 @@
-// ===========================
-// Supabase Config
-// ===========================
+/* ======================================================
+   CONFIG SUPABASE
+====================================================== */
 const supabaseUrl = "https://abhrkcpchrwyjcewfnds.supabase.co";
 const supabaseKey = "sb_publishable_Mz_eGCSHxj3DOOOXyyQwZg_aJmmiFuP";
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-let deviceId = "UNKNOWN";
-let playCount = 0;
-let maxPlays = 5;
+/* ======================================================
+   DEVICE ID (Fingerprint)
+====================================================== */
+let deviceId = "unknown";
 
-// ===========================
-// Fingerprint
-// ===========================
 async function initFingerprint() {
-  try {
-    const fp = await FingerprintJS.load();
-    const res = await fp.get();
-    deviceId = res.visitorId;
-  } catch {
-    deviceId = "RND-" + Math.random().toString(36).slice(2, 10);
-  }
-
-  loadTodayPlays();
+    try {
+        const fp = await FingerprintJS.load();
+        const result = await fp.get();
+        deviceId = result.visitorId;
+    } catch (err) {
+        deviceId = "RND-" + Math.random().toString(36).slice(2);
+    }
+    loadPlaysToday();
 }
+
 initFingerprint();
 
-// ===========================
-// Load / Save Chance
-// ===========================
-async function loadTodayPlays() {
-  const today = new Date().toISOString().slice(0, 10);
+/* ======================================================
+   LOAD PLAY COUNT
+====================================================== */
+let playCount = 0;
 
-  const { data } = await supabaseClient
-    .from("plays")
-    .select("*")
-    .eq("device_id", deviceId)
-    .eq("date", today)
-    .maybeSingle();
+async function loadPlaysToday() {
+    const today = new Date().toISOString().slice(0, 10);
 
-  if (!data) {
-    await supabaseClient.from("plays").insert({
-      device_id: deviceId,
-      date: today,
-      plays: 0
-    });
-    playCount = 0;
-  } else {
-    playCount = data.plays;
-  }
+    const { data } = await supabase
+        .from("plays")
+        .select("*")
+        .eq("device_id", deviceId)
+        .eq("date", today)
+        .maybeSingle();
 
-  updateChanceUI();
+    if (!data) {
+        await supabase.from("plays").insert({
+            device_id: deviceId,
+            date: today,
+            plays: 0
+        });
+        playCount = 0;
+    } else {
+        playCount = data.plays;
+    }
+
+    updateRemaining();
 }
 
-async function savePlay() {
-  const today = new Date().toISOString().slice(0, 10);
-
-  await supabaseClient
-    .from("plays")
-    .update({ plays: playCount })
-    .eq("device_id", deviceId)
-    .eq("date", today);
+function updateRemaining() {
+    document.getElementById("remaining").innerText = 5 - playCount;
 }
 
-function updateChanceUI() {
-  document.getElementById("chanceText").innerHTML =
-    `Chances: <b>${maxPlays - playCount}</b>`;
-}
-
-// ===========================
-// MACHINE LOGIC
-// ===========================
-const machine = document.getElementById("machine");
-const ballsArea = document.getElementById("balls");
+/* ======================================================
+   AUTO MOVE CLAW
+====================================================== */
 const claw = document.getElementById("claw");
+let moveDir = 1; // 1 = right, -1 = left
+let clawX = 50; // %
+let clawSpeed = 0.6; // smooth ngebut dikit
 
-let clawX = 50; // percent
-let isDropping = false;
-
-// ===========================
-// Spawn Balls
-// ===========================
-const COLORS = ["#39ff14", "#0044ff"]; // neon green + dark blue
-
-function spawnBalls() {
-  ballsArea.innerHTML = "";
-
-  for (let i = 0; i < 7; i++) {
-    const ball = document.createElement("div");
-    ball.className = "ball";
-
-    const size = Math.floor(Math.random() * 30) + 45; // 45–75px
-    const limit = Math.floor(Math.random() * 5) + 1; // 1–5 reward
-
-    ball.dataset.limit = limit;
-
-    ball.style.width = size + "px";
-    ball.style.height = size + "px";
-    ball.style.background = COLORS[Math.floor(Math.random() * COLORS.length)];
-
-    // random position bottom
-    ball.style.left = (Math.random() * 70 + 5) + "%";
-    ball.style.top = (Math.random() * 40 + 55) + "%";
-
-    ball.innerHTML = limit;
-
-    ballsArea.appendChild(ball);
-  }
-}
-spawnBalls();
-
-// ===========================
-// Move claw left/right
-// ===========================
-document.getElementById("leftBtn").onclick = () => moveClaw(-7);
-document.getElementById("rightBtn").onclick = () => moveClaw(+7);
-
-function moveClaw(dir) {
-  if (isDropping) return;
-  clawX += dir;
-  if (clawX < 5) clawX = 5;
-  if (clawX > 95) clawX = 95;
-
-  claw.style.left = clawX + "%";
+function autoMove() {
+    clawX += moveDir * clawSpeed;
+    if (clawX > 88) moveDir = -1;
+    if (clawX < 12) moveDir = 1;
+    claw.style.left = clawX + "%";
+    requestAnimationFrame(autoMove);
 }
 
-// ===========================
-// CAPIT ACTION
-// ===========================
-document.getElementById("capitBtn").onclick = async () => {
-  if (isDropping) return;
+autoMove();
 
-  if (playCount >= maxPlays) {
-    document.getElementById("rewardText").innerHTML =
-      "❌ Kesempatan habis, coba besok.";
-    return;
-  }
+/* ======================================================
+   GAME LOGIC
+====================================================== */
+const playBtn = document.getElementById("play-btn");
+const ballArea = document.getElementById("ball-area");
+const resultBox = document.getElementById("result");
+const resultText = document.getElementById("result-text");
+const resultDetail = document.getElementById("result-detail");
 
-  isDropping = true;
-  playCount++;
-  updateChanceUI();
-  savePlay();
+let isPlaying = false;
 
-  await dropClaw();
-};
+playBtn.onclick = playGame;
 
-// ===========================
-// Claw Drop + Hit Detection
-// ===========================
-async function dropClaw() {
-  // turun
-  claw.style.transition = "0.8s";
-  claw.style.top = "220px";
+async function playGame() {
+    if (isPlaying) return;
+    if (playCount >= 5) {
+        showResult("❌ Kesempatan habis!", "Coba lagi besok.");
+        return;
+    }
 
-  await wait(800);
+    isPlaying = true;
+    playBtn.disabled = true;
 
-  const ball = detectHit();
-  let rewardText = "";
+    stopAutoMove();
+    await animateClawDown();
+    const selectedBall = getClosestBall();
+    await animateClawUp(selectedBall);
 
-  if (!ball) {
-    rewardText = "🎁 ZONK!";
-  } else {
-    const limit = ball.dataset.limit;
+    const prize = selectedBall.dataset.prize;
+    giveReward(prize);
+
+    // SAVE play count
+    playCount++;
+    updateRemaining();
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    await supabase
+        .from("plays")
+        .update({ plays: playCount })
+        .eq("device_id", deviceId)
+        .eq("date", today);
+
+    // reset state after animation
+    setTimeout(() => {
+        playBtn.disabled = false;
+        isPlaying = false;
+        autoMove();
+    }, 1200);
+}
+
+/* ======================================================
+   STOP AUTO MOVE
+====================================================== */
+function stopAutoMove() {
+    moveDir = 0;
+}
+
+/* ======================================================
+   ANIMASI CAPIT TURUN
+====================================================== */
+function animateClawDown() {
+    return new Promise(resolve => {
+        claw.style.transition = "top 0.6s";
+        claw.style.top = "35%";
+
+        setTimeout(resolve, 600);
+    });
+}
+
+/* ======================================================
+   AMBIL BOLA TERDEKAT
+====================================================== */
+function getClosestBall() {
+    const balls = [...document.querySelectorAll(".ball")];
+    let closest = null;
+    let minDist = 9999;
+
+    const clawRect = claw.getBoundingClientRect();
+
+    balls.forEach(ball => {
+        const r = ball.getBoundingClientRect();
+        const dist = Math.abs((r.left + r.width / 2) - (clawRect.left + clawRect.width / 2));
+        if (dist < minDist) {
+            minDist = dist;
+            closest = ball;
+        }
+    });
+
+    return closest;
+}
+
+/* ======================================================
+   ANIMASI NAIK + NARIK BOLA
+====================================================== */
+function animateClawUp(ball) {
+    return new Promise(resolve => {
+        const clawRect = claw.getBoundingClientRect();
+        const ballRect = ball.getBoundingClientRect();
+
+        // tempel bola
+        ball.style.transition = "all 0.6s";
+        ball.style.left = (clawRect.left - ballRect.width / 2 + clawRect.width / 2) + "px";
+        ball.style.top = (clawRect.top + 20) + "px";
+        ball.style.position = "fixed";
+
+        // naik
+        setTimeout(() => {
+            claw.style.top = "5%";
+            ball.style.top = "10%";
+        }, 80);
+
+        setTimeout(resolve, 650);
+    });
+}
+
+/* ======================================================
+   REWARD SYSTEM
+====================================================== */
+async function giveReward(prize) {
+    if (prize === "zonk") {
+        showResult("😵‍💫 ZONK!", "Tidak dapat apa-apa.");
+        return;
+    }
+
+    const limitValue = parseInt(prize);
     const code = generateCode();
 
-    saveReward(limit, code);
+    // save code
+    await supabase.from("codes").insert({
+        code: code,
+        limit: limitValue,
+        device_id: deviceId,
+        created_at: new Date().toISOString()
+    });
 
-    rewardText = `🎉 DAPET ${limit} LIMIT <br>KODE: <b>${code}</b>`;
-
-    ball.remove();
-  }
-
-  // naik lagi
-  claw.style.top = "10px";
-
-  await wait(800);
-
-  document.getElementById("rewardText").innerHTML = rewardText;
-
-  isDropping = false;
-}
-
-function detectHit() {
-  const clawRect = claw.getBoundingClientRect();
-  const balls = document.querySelectorAll(".ball");
-
-  for (const ball of balls) {
-    const rect = ball.getBoundingClientRect();
-
-    if (
-      clawRect.left < rect.right &&
-      clawRect.right > rect.left &&
-      clawRect.bottom > rect.top
-    ) {
-      return ball;
-    }
-  }
-  return null;
-}
-
-// ===========================
-// Utils
-// ===========================
-function wait(ms) {
-  return new Promise(res => setTimeout(res, ms));
+    showResult(
+        `🎉 Dapat ${limitValue} LIMIT!`,
+        `Kode Redeem: <b>${code}</b>`
+    );
 }
 
 function generateCode() {
-  return "AZ-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+    return "AZ-" + Math.random().toString(36).substring(2, 10).toUpperCase();
 }
 
-async function saveReward(limit, code) {
-  await supabaseClient.from("codes").insert({
-    code: code,
-    limit: limit
-  });
+/* ======================================================
+   SHOW RESULT
+====================================================== */
+function showResult(title, detail) {
+    resultText.innerHTML = title;
+    resultDetail.innerHTML = detail;
+    resultBox.classList.remove("hidden");
 }
