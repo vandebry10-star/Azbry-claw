@@ -1,70 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Azbry-MD Claw Machine by FebryWesker</title>
 
   <!-- Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
 
-  <!-- FingerprintJS -->
-  <script src="https://fingerprintjs.github.io/fingerprintjs/dist/fp.min.js"></script>
+  <!-- FingerprintJS V3 (STABLE!) -->
+  <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
 
   <style>
-    body {
-      background: #111;
-      color: white;
-      font-family: Arial;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
-      margin-top: 20px;
-      font-size: 28px;
-    }
-    #game {
-      margin-top: 20px;
-    }
-    .claw-container {
-      width: 200px;
-      margin: auto;
-      position: relative;
-      height: 300px;
-    }
-    #claw-arm {
-      width: 4px;
-      height: 120px;
-      background: silver;
-      margin: auto;
-      transition: 0.6s;
-    }
-    #claw {
-      width: 60px;
-      margin: auto;
-      transition: 0.6s;
-    }
-    #playBtn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      border: none;
-      background: #ff4444;
-      color: white;
-      font-size: 18px;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-    #result {
-      margin-top: 15px;
-      font-size: 20px;
-      font-weight: bold;
-    }
-    footer {
-      margin-top: 30px;
-      opacity: 0.4;
-      font-size: 14px;
-    }
+    body { background:#111;color:white;font-family:Arial;text-align:center;margin:0 }
+    h1 { margin-top:20px;font-size:28px }
+    .claw-container { width:200px;margin:auto;position:relative;height:300px }
+    #claw-arm { width:4px;height:120px;background:silver;margin:auto;transition:.6s }
+    #claw { width:60px;margin:auto;transition:.6s }
+    #playBtn { margin-top:20px;padding:10px 20px;background:#ff4444;
+      border:none;font-size:18px;color:white;border-radius:10px;cursor:pointer }
+    #result { margin-top:15px;font-size:20px;font-weight:bold }
+    footer { margin-top:30px;opacity:.4;font-size:14px }
   </style>
 </head>
 <body>
@@ -76,7 +32,8 @@
     <div id="claw-arm"></div>
 
     <svg id="claw" viewBox="0 0 100 100">
-      <path d="M50 10 L30 50 L40 50 L50 30 L60 50 L70 50 Z" fill="silver" stroke="white" />
+      <path d="M50 10 L30 50 L40 50 L50 30 L60 50 L70 50 Z"
+            fill="silver" stroke="white"/>
     </svg>
   </div>
 
@@ -87,8 +44,6 @@
 
 <footer>© 2025 FebryWesker — Azbry-MD Claw Machine</footer>
 
-<!-- GAME LOGIC -->
 <script src="./game.js"></script>
-
 </body>
 </html>
